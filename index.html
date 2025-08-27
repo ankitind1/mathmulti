@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Freaking Math — Multiplayer (Supabase, T/F)</title>
-  <meta name="description" content="Freaking Math style: decide if the equation is correct (green) or wrong (red). Supabase Realtime channels, QR join, timer, leaderboard." />
+  <meta name="description" content="Decide if the equation is correct (green) or wrong (red). Supabase Realtime channels, QR join, timer, leaderboard." />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./css/styles.css" />
 </head>
@@ -19,9 +19,10 @@
   <main class="max-w-5xl mx-auto px-4 py-6">
     <!-- View: Home -->
     <section id="viewHome" class="card">
-      <h2 class="text-lg font-semibold mb-3">Create or Join a Room</h2>
+      <h2 class="text-lg font-semibold mb-3">Join a Room</h2>
+      <p id="guestHint" class="text-sm text-slate-600 mb-4 hidden">This is a guest join screen. Ask your host for a QR code or room code.</p>
       <div class="grid sm:grid-cols-2 gap-6">
-        <div>
+        <div id="hostPanel">
           <h3 class="font-medium mb-2">Host a game</h3>
           <label class="block mb-2 text-sm">Your display name</label>
           <input id="hostName" class="input" placeholder="e.g., Ankit" />
@@ -46,7 +47,7 @@
           <p class="text-xs text-slate-600 mt-2">A 6‑char code is created. Players scan a QR or enter the code to join. Everyone gets the same question order using a shared seed.</p>
         </div>
 
-        <div>
+        <div id="joinPanel">
           <h3 class="font-medium mb-2">Join an existing game</h3>
           <label class="block mb-2 text-sm">Your display name</label>
           <input id="joinName" class="input" placeholder="e.g., Nidhi" />
@@ -146,6 +147,6 @@
 
   <!-- Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script type="module" src="./js/app_supabase_tf.js"></script>
+  <script type="module" src="./js/app_supabase_tf_guestflow.js"></script>
 </body>
 </html>
