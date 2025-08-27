@@ -80,8 +80,9 @@ function show(viewId) {
 $('howLink').addEventListener('click', (e)=>{ e.preventDefault(); $('howDialog').showModal(); });
 $('closeHowBtn').addEventListener('click', ()=> $('howDialog').close());
 
-// Home
+// Host-only creation (disabled for guests coming via ?room)
 $('createRoomBtn').addEventListener('click', async ()=>{
+  if ($('createRoomBtn').disabled) return;
   const name = $('hostName').value.trim();
   if (!name) return alert('Enter your name');
   const code = genRoomCode();
@@ -91,6 +92,8 @@ $('createRoomBtn').addEventListener('click', async ()=>{
   await joinChannel(code);
   enterLobby();
 });
+
+// Guest join
 $('joinRoomBtn').addEventListener('click', async ()=>{
   const name = $('joinName').value.trim();
   const code = $('joinCode').value.trim().toUpperCase();
@@ -102,7 +105,9 @@ $('joinRoomBtn').addEventListener('click', async ()=>{
 
 async function joinChannel(code) {
   if (room.channel) await room.channel.unsubscribe();
-  room.channel = supabase.channel(`room-${code}`, { config: { broadcast: { self: true }, presence: { key: uid } } });
+  room.channel = supabase.channel(`room-${code}`, {
+    config: { broadcast: { self: true }, presence: { key: uid } }
+  });
 
   room.channel.on('presence', { event: 'sync' }, ()=>{
     const state = room.channel.presenceState();
@@ -210,7 +215,10 @@ function renderStatement() {
   $('questionBox').textContent = `${s.a} + ${s.b} = ${s.shown}`;
 }
 
-function hookButtons() { $('btnCorrect').onclick = ()=>submitTF(true); $('btnWrong').onclick = ()=>submitTF(false); }
+function hookButtons() {
+  $('btnCorrect').onclick = ()=> submitTF(true);
+  $('btnWrong').onclick = ()=> submitTF(false);
+}
 
 function submitTF(choseCorrect) {
   if (room.eliminated) return;
@@ -248,9 +256,15 @@ function showResults() {
   $('newRoomBtn').onclick = ()=>{ location.href = location.pathname; };
 }
 
-// Auto-join via URL ?room=CODE
+// Auto-join mode: hide host creation if ?room is present
 (function initFromUrl(){
   const params = new URLSearchParams(location.search);
   const code = params.get('room');
-  if (code) { $('joinCode').value = code.toUpperCase(); show('viewHome'); }
+  if (code) {
+    $('joinCode').value = code.toUpperCase();
+    $('hostPanel').classList.add('hidden');
+    $('createRoomBtn').disabled = True;  # disable safeguard
+    $('guestHint').classList.remove('hidden');
+  }
+  show('viewHome');
 })();
