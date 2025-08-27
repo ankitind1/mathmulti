@@ -30,7 +30,7 @@ function genRoomCode(len=6) {
 let room = {
   code: '',
   isHost: false,
-  me: { name: '' },
+  me: { name: '', total: 0, highest: 0 },
   duration: 30,
   difficulty: 'easy',
   seed: null,
@@ -124,9 +124,17 @@ async function joinChannel(code) {
     room.players.clear();
     Object.entries(state).forEach(([k, metas])=>{
       const m = metas[0];
-      room.players.set(k, { name: m.name, score: m.score||0, eliminated: !!m.eliminated, present: true });
+      room.players.set(k, {
+        name: m.name,
+        score: m.score || 0,
+        eliminated: !!m.eliminated,
+        total: m.total || 0,
+        highest: m.highest || 0,
+        present: true
+      });
     });
-    renderPlayerList();
+    if (room.status === 'lobby') renderPlayerList();
+    if (room.status === 'ended') renderResultsLeaderboard();
   });
 
   room.channel.on('broadcast', { event: 'settings' }, ({payload})=>{
@@ -146,10 +154,11 @@ async function joinChannel(code) {
     room.players.set(payload.uid, p);
   });
   room.channel.on('broadcast', { event: 'ended' }, ()=>{ room.status='ended'; showResults(); });
+  room.channel.on('broadcast', { event: 'lobby' }, ()=>{ room.status='lobby'; enterLobby(); });
 
   await room.channel.subscribe(async (status)=>{
     if (status==='SUBSCRIBED') {
-      await room.channel.track({ name: room.me.name, score: 0, eliminated: false });
+      await room.channel.track({ name: room.me.name, score: 0, eliminated: false, total: room.me.total, highest: room.me.highest });
     }
   });
 }
@@ -192,10 +201,28 @@ function renderPlayerList() {
   }).join('');
 }
 
+function renderResultsLeaderboard() {
+  const arrGame = Array.from(room.players.values()).map(p=>({ name: p.name, score: p.score||0, eliminated: !!p.eliminated })).sort((a,b)=> b.score - a.score);
+  $('leaderboardGame').innerHTML = arrGame.map((p,i)=>{
+    const rank = i+1;
+    const badge = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    const elim = p.eliminated ? ' • eliminated' : '';
+    return `<li class="p-2 flex justify-between"><span>${rank}. ${p.name} ${badge}</span><span>score ${p.score}${elim}</span></li>`;
+  }).join('');
+
+  const arrOverall = Array.from(room.players.values()).map(p=>({ name: p.name, total: p.total||0, highest: p.highest||0 })).sort((a,b)=> b.total - a.total);
+  $('leaderboardOverall').innerHTML = arrOverall.map((p,i)=>{
+    const rank = i+1;
+    const badge = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
+    return `<li class="p-2 flex justify-between"><span>${rank}. ${p.name} ${badge}</span><span>total ${p.total} • best ${p.highest}</span></li>`;
+  }).join('');
+}
+
 let rafId = null;
 function startGame() {
   show('viewGame');
   room.index = 0; room.score = 0; room.eliminated = false;
+  room.channel.track({ name: room.me.name, score: 0, eliminated: false, total: room.me.total, highest: room.me.highest });
   $('roomCodeLabelGame').textContent = room.code;
   $('meName').textContent = room.me.name;
   $('elimText').classList.add('hidden');
@@ -255,14 +282,34 @@ function finishGame() {
 function showResults() {
   show('viewResults');
   $('roomCodeLabelResults').textContent = room.code;
-  const arr = Array.from(room.players.values()).map(p=>({ name: p.name, score: p.score||0, eliminated: !!p.eliminated })).sort((a,b)=> b.score - a.score);
-  $('leaderboard').innerHTML = arr.map((p,i)=>{
-    const rank = i+1;
-    const badge = rank===1?'🥇':rank===2?'🥈':rank===3?'🥉':'';
-    const elim = p.eliminated ? ' • eliminated' : '';
-    return `<li class="p-2 flex justify-between"><span>${rank}. ${p.name} ${badge}</span><span>score ${p.score}${elim}</span></li>`;
-  }).join('');
-  $('playAgainBtn').onclick = ()=>{ room.status='lobby'; show('viewLobby'); };
+
+  const me = room.players.get(uid) || { name: room.me.name, score: room.score, eliminated: room.eliminated, total: 0, highest: 0 };
+  me.score = room.score;
+  me.eliminated = room.eliminated;
+  me.total = (me.total || 0) + room.score;
+  me.highest = Math.max(me.highest || 0, room.score);
+  room.players.set(uid, me);
+  room.me.total = me.total;
+  room.me.highest = me.highest;
+  room.channel.track({ name: room.me.name, score: me.score, eliminated: me.eliminated, total: me.total, highest: me.highest });
+
+  renderResultsLeaderboard();
+
+  $('backToLobbyBtn').onclick = ()=>{
+    if (room.isHost) room.channel.send({ type: 'broadcast', event: 'lobby', payload: {} });
+    room.status = 'lobby';
+    enterLobby();
+  };
+  if (room.isHost) {
+    $('restartGameBtn').classList.remove('hidden');
+    $('restartGameBtn').onclick = ()=>{
+      const seed = Math.floor(Math.random()*2**31);
+      const startAt = Date.now() + 2500;
+      room.channel.send({ type: 'broadcast', event: 'start', payload: { seed, startAt }});
+    };
+  } else {
+    $('restartGameBtn').classList.add('hidden');
+  }
   $('newRoomBtn').onclick = ()=>{ location.href = location.pathname; };
 }
 
