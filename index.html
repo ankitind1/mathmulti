@@ -120,9 +120,13 @@
     <!-- View: Results -->
     <section id="viewResults" class="card hidden">
       <h2 class="text-lg font-semibold">Results — Room <span id="roomCodeLabelResults"></span></h2>
-      <ol id="leaderboard" class="mt-3 bg-white border rounded divide-y"></ol>
+      <h3 class="font-medium mt-3">This Game</h3>
+      <ol id="leaderboardGame" class="mt-1 bg-white border rounded divide-y"></ol>
+      <h3 class="font-medium mt-4">Overall</h3>
+      <ol id="leaderboardOverall" class="mt-1 bg-white border rounded divide-y"></ol>
       <div class="mt-4 flex flex-wrap gap-3">
-        <button id="playAgainBtn" class="btn">Back to Lobby</button>
+        <button id="backToLobbyBtn" class="btn">Back to Lobby</button>
+        <button id="restartGameBtn" class="btn hidden">Restart Game</button>
         <button id="newRoomBtn" class="btn-secondary">Create New Room</button>
       </div>
     </section>
@@ -143,7 +147,7 @@
     </dialog>
   </main>
 
-  <footer class="py-8 text-center text-xs text-slate-500">Built by ChatGPT • Supabase Realtime channels</footer>
+  <!-- Footer intentionally left blank -->
 
   <!-- Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
