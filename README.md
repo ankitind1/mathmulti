@@ -1,19 +1,16 @@
-# Freaking Math — Multiplayer (Supabase Realtime)
+# Freaking Math — Multiplayer (Supabase, True/False)
 
-A static, mobile-friendly math race game using **Supabase Realtime channels** (no SQL tables required).
+This variant uses **Correct / Wrong** buttons like the original Freaking Math:
+- Shows equations like `8 + 9 = 17`
+- Tap **Correct ✅** if true, **Wrong ❌** if false
+- One mistake → eliminated; highest score wins
+- Supabase Realtime **channels + presence** (no DB tables)
 
 ## Setup
-1) Create a project at https://supabase.com and obtain:
-   - `SUPABASE_URL`
-   - `SUPABASE_ANON_KEY`
-2) In `js/app_supabase.js`, replace the placeholders with your values.
-3) Serve locally:
-```bash
-python3 -m http.server 5173
-# visit http://localhost:5173
-```
-Or deploy to Netlify / Vercel (no build step).
+1) Create a Supabase project → copy `SUPABASE_URL` and `anon` key.
+2) Put them into `js/app_supabase_tf.js`.
+3) Serve locally with `python3 -m http.server 5173` or deploy to Netlify/Vercel.
 
 ## Notes
-- Client trusts the browser for scoring; for stricter anti‑cheat, use a Supabase **Edge Function** to validate answers against the deterministic seed.
-- Presence + broadcast are used; no database tables are needed unless you want to persist results.
+- The equation’s RHS is deterministically correct or off by ±1..3 from a seeded RNG, so everyone sees the **same statement order**.
+- For anti‑cheat, add a Supabase **Edge Function** to validate answers from the seed.

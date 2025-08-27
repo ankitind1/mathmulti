@@ -3,8 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Freaking Math — Multiplayer (Supabase)</title>
-  <meta name="description" content="Synchronized addition game using Supabase Realtime channels, QR join, timer, and leaderboard." />
+  <title>Freaking Math — Multiplayer (Supabase, T/F)</title>
+  <meta name="description" content="Freaking Math style: decide if the equation is correct (green) or wrong (red). Supabase Realtime channels, QR join, timer, leaderboard." />
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="stylesheet" href="./css/styles.css" />
 </head>
@@ -106,11 +106,13 @@
         <div class="text-sm">Time left: <span id="timeLeft">00:30</span></div>
       </div>
       <div class="mt-4 bg-white border rounded p-6 text-center">
-        <div id="statusMsg" class="text-sm text-slate-600 mb-2"></div>
-        <div id="questionBox" class="text-3xl font-bold tracking-tight">0 + 0 = ?</div>
-        <input id="answerInput" class="input text-center text-2xl mt-4" placeholder="Enter answer" inputmode="numeric" />
-        <button id="submitAnswerBtn" class="btn mt-4 w-full">Submit</button>
-        <div class="mt-3 text-sm text-slate-600">Score: <span id="scoreText">0</span> • Streak index: <span id="indexText">0</span> • <span id="elimText" class="hidden text-red-600 font-medium">ELIMINATED</span></div>
+        <div id="statusMsg" class="text-sm text-slate-600 mb-3"></div>
+        <div id="questionBox" class="text-4xl font-extrabold tracking-tight">0 + 0 = 0</div>
+        <div class="grid grid-cols-2 gap-3 mt-5">
+          <button id="btnCorrect" class="btn" style="background:#16a34a">Correct ✅</button>
+          <button id="btnWrong" class="btn" style="background:#dc2626">Wrong ❌</button>
+        </div>
+        <div class="mt-4 text-sm text-slate-600">Score: <span id="scoreText">0</span> • Index: <span id="indexText">0</span> • <span id="elimText" class="hidden text-red-600 font-medium">ELIMINATED</span></div>
       </div>
     </section>
 
@@ -129,12 +131,9 @@
       <div class="p-5">
         <h3 class="text-lg font-semibold">How it works</h3>
         <ul class="list-disc pl-5 mt-2 text-sm text-slate-700 space-y-1">
-          <li>The host creates a room and shares a QR / room code.</li>
-          <li>Players join, enter their name, and wait in the lobby.</li>
-          <li>When the host presses Start, a random <em>seed</em> and start time are broadcast over the room channel.</li>
-          <li>Every device generates the <strong>same</strong> sequence of addition questions from that seed.</li>
-          <li>Answer as many as you can before time ends. One wrong answer and you're out.</li>
-          <li>Leaderboard is built from real-time score broadcasts.</li>
+          <li>Seed + start time guarantee same question order on all devices.</li>
+          <li>Each prompt shows an addition like “8 + 9 = 17”. Tap ✅ if correct, ❌ if wrong.</li>
+          <li>One mistake and you're out. Highest score wins.</li>
         </ul>
         <div class="text-right mt-4">
           <button id="closeHowBtn" class="btn-secondary">Close</button>
@@ -143,10 +142,10 @@
     </dialog>
   </main>
 
-  <footer class="py-8 text-center text-xs text-slate-500">Built by ChatGPT • Static app using Supabase Realtime channels</footer>
+  <footer class="py-8 text-center text-xs text-slate-500">Built by ChatGPT • Supabase Realtime channels</footer>
 
   <!-- Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-  <script type="module" src="./js/app_supabase.js"></script>
+  <script type="module" src="./js/app_supabase_tf.js"></script>
 </body>
 </html>
