@@ -6,6 +6,14 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = (id) => document.getElementById(id);
+
+// Local diagnostics helper
+const IS_LOCAL = window.location.hostname.includes('localhost');
+const diag = (...args) => { if (IS_LOCAL) console.log('[diag]', ...args); };
+if (IS_LOCAL) {
+  window.addEventListener('error', (e) => console.error('[diag] runtime error', e.error));
+  window.addEventListener('unhandledrejection', (e) => console.error('[diag] unhandled rejection', e.reason));
+}
 const uid = (() => {
   let u = localStorage.getItem('fm_uid');
   if (!u) { u = crypto.randomUUID(); localStorage.setItem('fm_uid', u); }
@@ -82,6 +90,7 @@ $('closeHowBtn').addEventListener('click', ()=> $('howDialog').close());
 
 // Host-only creation (disabled for guests coming via ?room)
 $('createRoomBtn').addEventListener('click', async ()=>{
+  diag('createRoomBtn clicked');
   if ($('createRoomBtn').disabled) return;
   const name = $('hostName').value.trim();
   if (!name) return alert('Enter your name');
@@ -95,6 +104,7 @@ $('createRoomBtn').addEventListener('click', async ()=>{
 
 // Guest join
 $('joinRoomBtn').addEventListener('click', async ()=>{
+  diag('joinRoomBtn clicked');
   const name = $('joinName').value.trim();
   const code = $('joinCode').value.trim().toUpperCase();
   if (!name || code.length!==6) return alert('Enter name and valid code');
@@ -263,8 +273,13 @@ function showResults() {
   if (code) {
     $('joinCode').value = code.toUpperCase();
     $('hostPanel').classList.add('hidden');
-    $('createRoomBtn').disabled = True;  # disable safeguard
+    $('createRoomBtn').disabled = true; // disable safeguard
     $('guestHint').classList.remove('hidden');
+  } else {
+    $('hostPanel').classList.remove('hidden');
+    $('createRoomBtn').disabled = false;
+    $('guestHint').classList.add('hidden');
   }
+  diag('initFromUrl', { code, guestMode: !!code });
   show('viewHome');
 })();
