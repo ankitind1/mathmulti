@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Freaking Math — Multiplayer (Supabase)</title>
+  <meta name="description" content="Synchronized addition game using Supabase Realtime channels, QR join, timer, and leaderboard." />
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="./css/styles.css" />
+</head>
+<body class="bg-slate-50 text-slate-900">
+  <header class="border-b bg-white">
+    <div class="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
+      <h1 class="text-xl sm:text-2xl font-semibold">Freaking Math — Multiplayer</h1>
+      <a class="text-sm underline" href="#" id="howLink">How it works</a>
+    </div>
+  </header>
+
+  <main class="max-w-5xl mx-auto px-4 py-6">
+    <!-- View: Home -->
+    <section id="viewHome" class="card">
+      <h2 class="text-lg font-semibold mb-3">Create or Join a Room</h2>
+      <div class="grid sm:grid-cols-2 gap-6">
+        <div>
+          <h3 class="font-medium mb-2">Host a game</h3>
+          <label class="block mb-2 text-sm">Your display name</label>
+          <input id="hostName" class="input" placeholder="e.g., Ankit" />
+          <div class="grid grid-cols-2 gap-3 mt-3">
+            <label class="block">
+              <span class="text-sm">Duration</span>
+              <select id="duration" class="input">
+                <option value="30">30 seconds</option>
+                <option value="60">60 seconds</option>
+              </select>
+            </label>
+            <label class="block">
+              <span class="text-sm">Difficulty</span>
+              <select id="difficulty" class="input">
+                <option value="easy">Easy (1–9)</option>
+                <option value="normal">Normal (2–19)</option>
+                <option value="hard">Hard (10–50)</option>
+              </select>
+            </label>
+          </div>
+          <button id="createRoomBtn" class="btn mt-4 w-full">Create Room</button>
+          <p class="text-xs text-slate-600 mt-2">A 6‑char code is created. Players scan a QR or enter the code to join. Everyone gets the same question order using a shared seed.</p>
+        </div>
+
+        <div>
+          <h3 class="font-medium mb-2">Join an existing game</h3>
+          <label class="block mb-2 text-sm">Your display name</label>
+          <input id="joinName" class="input" placeholder="e.g., Nidhi" />
+          <label class="block mb-2 mt-3 text-sm">Room code</label>
+          <input id="joinCode" class="input uppercase" maxlength="6" placeholder="ABC123" />
+          <button id="joinRoomBtn" class="btn mt-4 w-full">Join Room</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Lobby -->
+    <section id="viewLobby" class="card hidden">
+      <div class="flex items-start justify-between gap-4">
+        <div>
+          <h2 class="text-lg font-semibold">Lobby — Room <span id="roomCodeLabel"></span></h2>
+          <p class="text-sm text-slate-600">Share this code or the QR for players to join.</p>
+        </div>
+        <div id="qrWrap" class="bg-white border rounded p-2"></div>
+      </div>
+
+      <div class="grid md:grid-cols-2 gap-6 mt-4">
+        <div>
+          <h3 class="font-medium mb-2">Players (<span id="playerCount">0</span>)</h3>
+          <ul id="playerList" class="divide-y bg-white border rounded"></ul>
+        </div>
+        <div class="bg-white border rounded p-4">
+          <h3 class="font-medium">Game Settings</h3>
+          <div class="grid grid-cols-2 gap-3 mt-2">
+            <label class="block"> <span class="text-sm">Duration</span>
+              <select id="lobbyDuration" class="input">
+                <option value="30">30 seconds</option>
+                <option value="60">60 seconds</option>
+              </select>
+            </label>
+            <label class="block"> <span class="text-sm">Difficulty</span>
+              <select id="lobbyDifficulty" class="input">
+                <option value="easy">Easy (1–9)</option>
+                <option value="normal">Normal (2–19)</option>
+                <option value="hard">Hard (10–50)</option>
+              </select>
+            </label>
+          </div>
+          <button id="startGameBtn" class="btn mt-4 w-full hidden">Start Game</button>
+          <p class="text-xs text-slate-600 mt-2">Only the host can start. Starting shares a seed and synchronized start time.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- View: Game -->
+    <section id="viewGame" class="card hidden">
+      <div class="flex items-center justify-between mb-2">
+        <h2 class="text-lg font-semibold">Game in progress</h2>
+        <div class="text-sm">Room <span id="roomCodeLabelGame"></span></div>
+      </div>
+      <div class="flex items-center justify-between">
+        <div class="text-sm">Player: <span id="meName"></span></div>
+        <div class="text-sm">Time left: <span id="timeLeft">00:30</span></div>
+      </div>
+      <div class="mt-4 bg-white border rounded p-6 text-center">
+        <div id="statusMsg" class="text-sm text-slate-600 mb-2"></div>
+        <div id="questionBox" class="text-3xl font-bold tracking-tight">0 + 0 = ?</div>
+        <input id="answerInput" class="input text-center text-2xl mt-4" placeholder="Enter answer" inputmode="numeric" />
+        <button id="submitAnswerBtn" class="btn mt-4 w-full">Submit</button>
+        <div class="mt-3 text-sm text-slate-600">Score: <span id="scoreText">0</span> • Streak index: <span id="indexText">0</span> • <span id="elimText" class="hidden text-red-600 font-medium">ELIMINATED</span></div>
+      </div>
+    </section>
+
+    <!-- View: Results -->
+    <section id="viewResults" class="card hidden">
+      <h2 class="text-lg font-semibold">Results — Room <span id="roomCodeLabelResults"></span></h2>
+      <ol id="leaderboard" class="mt-3 bg-white border rounded divide-y"></ol>
+      <div class="mt-4 flex flex-wrap gap-3">
+        <button id="playAgainBtn" class="btn">Back to Lobby</button>
+        <button id="newRoomBtn" class="btn-secondary">Create New Room</button>
+      </div>
+    </section>
+
+    <!-- How it works -->
+    <dialog id="howDialog" class="p-0 rounded-lg w-full max-w-xl">
+      <div class="p-5">
+        <h3 class="text-lg font-semibold">How it works</h3>
+        <ul class="list-disc pl-5 mt-2 text-sm text-slate-700 space-y-1">
+          <li>The host creates a room and shares a QR / room code.</li>
+          <li>Players join, enter their name, and wait in the lobby.</li>
+          <li>When the host presses Start, a random <em>seed</em> and start time are broadcast over the room channel.</li>
+          <li>Every device generates the <strong>same</strong> sequence of addition questions from that seed.</li>
+          <li>Answer as many as you can before time ends. One wrong answer and you're out.</li>
+          <li>Leaderboard is built from real-time score broadcasts.</li>
+        </ul>
+        <div class="text-right mt-4">
+          <button id="closeHowBtn" class="btn-secondary">Close</button>
+        </div>
+      </div>
+    </dialog>
+  </main>
+
+  <footer class="py-8 text-center text-xs text-slate-500">Built by ChatGPT • Static app using Supabase Realtime channels</footer>
+
+  <!-- Libs -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="./js/app_supabase.js"></script>
+</body>
+</html>
