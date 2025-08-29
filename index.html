@@ -52,7 +52,7 @@
           <label class="block mb-2 text-sm">Your display name</label>
           <input id="joinName" class="input" placeholder="e.g., Nidhi" />
           <label class="block mb-2 mt-3 text-sm">Room code</label>
-          <input id="joinCode" class="input uppercase" maxlength="6" placeholder="ABC123" />
+          <input id="joinCode" class="input uppercase" maxlength="10" placeholder="NIDHI40" />
           <button id="joinRoomBtn" class="btn mt-4 w-full">Join Room</button>
         </div>
       </div>
@@ -62,10 +62,13 @@
     <section id="viewLobby" class="card hidden">
       <div class="flex items-start justify-between gap-4">
         <div>
-          <h2 class="text-lg font-semibold">Lobby — Room <span id="roomCodeLabel"></span></h2>
+          <h2 class="text-lg font-semibold">Nidhi's 40th Birthday Bash — Room <span id="roomCodeLabel"></span></h2>
           <p class="text-sm text-slate-600">Share this code or the QR for players to join.</p>
+          <p class="text-sm text-pink-600 mt-1">Welcome to the math party!</p>
         </div>
-        <div id="qrWrap" class="bg-white border rounded p-2"></div>
+        <div>
+          <div id="qrWrap" class="bg-white border rounded p-2"></div>
+        </div>
       </div>
 
       <div class="grid md:grid-cols-2 gap-6 mt-4">
@@ -146,8 +149,7 @@
       </div>
     </dialog>
   </main>
-
-  <!-- Footer intentionally left blank -->
+  <footer class="text-center text-xs text-slate-600 mt-10 mb-4">Created by Zixle Studios</footer>
 
   <!-- Libs -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>

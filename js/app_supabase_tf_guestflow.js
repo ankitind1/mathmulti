@@ -7,6 +7,11 @@ const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 const $ = (id) => document.getElementById(id);
 
+// Track if URL grants host privileges
+let isHostLink = false;
+// Predefined room code for Nidhi's birthday bash
+const DEFAULT_ROOM_CODE = 'NIDHI40';
+
 // Local diagnostics helper
 const IS_LOCAL = window.location.hostname.includes('localhost');
 const diag = (...args) => { if (IS_LOCAL) console.log('[diag]', ...args); };
@@ -107,8 +112,8 @@ $('joinRoomBtn').addEventListener('click', async ()=>{
   diag('joinRoomBtn clicked');
   const name = $('joinName').value.trim();
   const code = $('joinCode').value.trim().toUpperCase();
-  if (!name || code.length!==6) return alert('Enter name and valid code');
-  room.code = code; room.isHost = false; room.me.name = name;
+  if (!name || code.length < 4) return alert('Enter name and valid code');
+  room.code = code; room.isHost = isHostLink; room.me.name = name;
   await joinChannel(code);
   enterLobby();
 });
@@ -166,7 +171,13 @@ async function joinChannel(code) {
 function enterLobby() {
   show('viewLobby');
   $('roomCodeLabel').textContent = room.code;
-  new QRCode('qrWrap', { text: `${location.origin}${location.pathname}?room=${room.code}`, width: 128, height: 128 });
+  const guestUrl = `${location.origin}${location.pathname}?room=${room.code}`;
+  $('qrWrap').innerHTML = '';
+  new QRCode('qrWrap', { text: guestUrl, width: 128, height: 128 });
+    if (room.isHost) {
+      const hostUrl = `${guestUrl}&host=1`;
+      console.log('Host link:', hostUrl);
+    }
   $('startGameBtn').classList.toggle('hidden', !room.isHost);
   syncLobbyControls();
   $('lobbyDuration').onchange = ()=>{
@@ -316,17 +327,12 @@ function showResults() {
 // Auto-join mode: hide host creation if ?room is present
 (function initFromUrl(){
   const params = new URLSearchParams(location.search);
-  const code = params.get('room');
-  if (code) {
-    $('joinCode').value = code.toUpperCase();
-    $('hostPanel').classList.add('hidden');
-    $('createRoomBtn').disabled = true; // disable safeguard
-    $('guestHint').classList.remove('hidden');
-  } else {
-    $('hostPanel').classList.remove('hidden');
-    $('createRoomBtn').disabled = false;
-    $('guestHint').classList.add('hidden');
-  }
-  diag('initFromUrl', { code, guestMode: !!code });
+  const code = params.get('room') || DEFAULT_ROOM_CODE;
+  isHostLink = params.get('host') === '1';
+  $('joinCode').value = code.toUpperCase();
+  $('hostPanel').classList.add('hidden');
+  $('createRoomBtn').disabled = true; // disable safeguard
+  $('guestHint').classList.remove('hidden');
+  diag('initFromUrl', { code, guestMode: true, isHostLink });
   show('viewHome');
 })();
